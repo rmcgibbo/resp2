@@ -1,3 +1,6 @@
+"""
+Calculation of the fused-sphere van der waals surface of a molecule.
+"""
 
 #############################################################################
 # Imports
@@ -96,7 +99,7 @@ def vdw_surface(coordinates, elements, scale_factor=1.4, density=1.0):
 
 
 if __name__ == '__main__':
-    # short test
+    # plot the surface for ala2, just to make sure it looks good
     
     import mdtraj as md
     t = md.load('ala2.pdb')
