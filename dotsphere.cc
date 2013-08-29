@@ -307,28 +307,28 @@ vector<Vector3> dotsphere2(int density) {
 }
 
 
-double get_coulomb_energy(vector<Vector3>& points) {
+double get_coulomb_energy(const vector<Vector3>& points) {
     // Calculate the coulomb energy between a set of ponts
     double e = 0;
-    for (int i = 0; i < points.size(); i++) {
-        for (int j = i+1; j < points.size(); j++) {
+    for (size_t i = 0; i < points.size(); i++) {
+        for (size_t j = i+1; j < points.size(); j++) {
             e += 1 / (points[i] - points[j]).norm();
         }
     }
     return e;
 }
 
-void get_coulomb_forces(vector<Vector3>& forces, vector<Vector3>& points) {
+void get_coulomb_forces(vector<Vector3>& forces, const vector<Vector3>& points) {
   if (forces.size() != points.size())
       throw "Size Mismatch";
-  for (int i = 0; i < forces.size(); i++) {
+  for (size_t i = 0; i < forces.size(); i++) {
       forces[i][0] = 0;
       forces[i][1] = 0;
       forces[i][2] = 0;
   }
   
-  for (int i = 0; i < points.size(); i++){
-      for (int j = i+1; j < points.size(); j++) {
+  for (size_t i = 0; i < points.size(); i++){
+      for (size_t j = i+1; j < points.size(); j++) {
           Vector3 r = points[i] - points[j];
           double l = r.norm();
           Vector3 ff = r / (l*l*l);
@@ -357,9 +357,9 @@ void refine_dotsphere(vector<Vector3>& vertices) {
     vector<Vector3> forces(vertices.size());
 
     double e0 = get_coulomb_energy(vertices);
-    for (int k = 0; k < N_REFINE_STEPS; k++) {
+    for (size_t k = 0; k < N_REFINE_STEPS; k++) {
         get_coulomb_forces(forces, vertices);
-        for (int i = 0; i < vertices.size(); i++) {
+        for (size_t i = 0; i < vertices.size(); i++) {
             vertices[i] = vertices[i] + forces[i]*step;
             vertices[i] = vertices[i] / vertices[i].norm();
         }
@@ -395,27 +395,27 @@ vector<Vector3> dotsphere(int density) {
 
     // Use one of the two algorithms to generate the initial dots
     // they will give slightly too many.
-    // if (10*i1*i1-2 < 30*i2*i2-2) {
-        // vertices = dotsphere1(density);
-    // } else {
+    if (10*i1*i1-2 < 30*i2*i2-2) {
+        vertices = dotsphere1(density);
+    } else {
          vertices = dotsphere2(density);
-     // }
+    }
     
-    if (density > vertices.size()) {
+    if (density > (int) vertices.size()) {
         fprintf(stderr, "density:%d, vertices.size(), %zu\n", density, vertices.size());
         fprintf(stderr, "Fatal error");
         exit(1);
     }
     
     // Now lets throw out some of them
-    set<int> keep;
-    while (keep.size() < density) {
-        int v = rand() % vertices.size();
+    set<size_t> keep;
+    while (keep.size() < (unsigned int) density) {
+        size_t v = rand() % vertices.size();
         keep.insert(v);
     }
 
     vector<Vector3> new_vertices;
-    for (set<int>::iterator iter = keep.begin(); iter != keep.end(); iter++) {
+    for (set<size_t>::iterator iter = keep.begin(); iter != keep.end(); iter++) {
         new_vertices.push_back(vertices[*iter]);
     }
     refine_dotsphere(new_vertices);
@@ -424,12 +424,12 @@ vector<Vector3> dotsphere(int density) {
 
 extern "C" void dotsphere(int density, double* points) {
     vector<Vector3> vertices = dotsphere(density);
-    if (density != vertices.size()) {
+    if ((size_t) density != vertices.size()) {
         fprintf(stderr, "Wrong size. density=%d, vetices.size=%zu", density, vertices.size());
         exit(1);
     }
 
-    for (int i = 0; i < vertices.size(); i++) {
+    for (size_t i = 0; i < vertices.size(); i++) {
         points[3*i+0] = vertices[i][0];
         points[3*i+1] = vertices[i][1];
         points[3*i+2] = vertices[i][2];
