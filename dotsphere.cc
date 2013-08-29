@@ -26,16 +26,18 @@
 #include <iostream>
 #include <set>
 #include "vector3.h"
+#include "dotsphere.h"
+
 #define TORAD(A)     ((A)*0.017453293)
 #define DP_TOL     0.001
 
+// Number of steps of electrostatic refinement
+#define N_REFINE_STEPS 25
+
 using namespace std;
 using namespace psi;
-// using namespace boost;
 
-
-double R_H = sqrt(1.0 - 2.0*cos(TORAD(72.)))/(1.-cos(TORAD(72.)));
-
+static double R_H = sqrt(1.0 - 2.0*cos(TORAD(72.)))/(1.-cos(TORAD(72.)));
 
 Vector3 divarc(const Vector3& xyz1, const Vector3& xyz2, int div1, int div2) {
     // Divide an arc based on the great circle
@@ -348,7 +350,6 @@ void refine_dotsphere(vector<Vector3>& vertices) {
     // Returns
     // -------
     // None. The vertices will be modified inplace
-    static int n_step = 25;
     double step = 0.005;
     if (vertices.size() > 100)
         step /= 50;
@@ -356,7 +357,7 @@ void refine_dotsphere(vector<Vector3>& vertices) {
     vector<Vector3> forces(vertices.size());
 
     double e0 = get_coulomb_energy(vertices);
-    for (int k = 0; k< n_step; k++) {
+    for (int k = 0; k < N_REFINE_STEPS; k++) {
         get_coulomb_forces(forces, vertices);
         for (int i = 0; i < vertices.size(); i++) {
             vertices[i] = vertices[i] + forces[i]*step;
@@ -401,7 +402,7 @@ vector<Vector3> dotsphere(int density) {
      // }
     
     if (density > vertices.size()) {
-        fprintf(stderr, "density:%d, vertices.size(), %d\n", density, vertices.size());
+        fprintf(stderr, "density:%d, vertices.size(), %zu\n", density, vertices.size());
         fprintf(stderr, "Fatal error");
         exit(1);
     }
@@ -421,18 +422,16 @@ vector<Vector3> dotsphere(int density) {
     return new_vertices;
 }
 
-extern "C" {
-void c_dotsphere(int density, double* points) {
+extern "C" void dotsphere(int density, double* points) {
     vector<Vector3> vertices = dotsphere(density);
     if (density != vertices.size()) {
-        fprintf(stderr, "Wrong size. density=%d, vetices.size=%d", density, vertices.size());
+        fprintf(stderr, "Wrong size. density=%d, vetices.size=%zu", density, vertices.size());
         exit(1);
     }
 
-    
     for (int i = 0; i < vertices.size(); i++) {
         points[3*i+0] = vertices[i][0];
         points[3*i+1] = vertices[i][1];
         points[3*i+2] = vertices[i][2];
     }   
-}}
+}
