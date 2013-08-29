@@ -409,7 +409,7 @@ vector<Vector3> dotsphere(int density) {
     
     // Now lets throw out some of them
     set<size_t> keep;
-    while (keep.size() < (unsigned int) density) {
+    while (keep.size() < (size_t) density) {
         size_t v = rand() % vertices.size();
         keep.insert(v);
     }
