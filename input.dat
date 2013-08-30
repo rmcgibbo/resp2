@@ -1,0 +1,22 @@
+import sys
+sys.path.insert(0, '..')
+import resp2
+
+
+molecule {
+H
+H 1 R
+
+R = .9
+}
+
+set globals {
+  basis sto-3g
+}
+
+set resp2 {
+    N_VDW_LAYERS 1
+}
+
+resp2.fit()
+

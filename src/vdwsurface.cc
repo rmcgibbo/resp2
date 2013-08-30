@@ -26,6 +26,7 @@
 #include <set>
 
 #include "include/dotsphere.h"
+// this is also included in the psi4 code as libmints/vector3.h
 #include "include/vector3.h"
 
 #ifndef M_PI
@@ -111,7 +112,6 @@ vector<Vector3> vdw_surface(vector<Vector3> coordinates, vector<string> elements
 
     vector<Vector3> surfacepoints;
     vector<double> radii;
-
 
     for (size_t i = 0; i < elements.size(); i++) {
         // todo: check for error if element not in BONDI_RADII table

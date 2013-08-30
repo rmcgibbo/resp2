@@ -2,6 +2,7 @@
 #define _dotsphere_h
 
 #include <vector>
+// this is also included in the psi4 code as libmints/vector3.h
 #include "include/vector3.h"
 
 using namespace std;
