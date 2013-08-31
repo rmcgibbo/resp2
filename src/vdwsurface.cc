@@ -104,7 +104,6 @@ vector<Vector3> vdw_surface(vector<Vector3> coordinates, vector<string> elements
     // density : float
     //     The (approximate) number of points to generate per square angstrom
     //     of surface area. 1.0 is the default recommended by Kollman & Singh.
-
     if (coordinates.size() != elements.size()) {
         fprintf(stderr, "coordinate.size doesnot match elements.size");
         exit(1);
@@ -160,24 +159,24 @@ vector<Vector3> vdw_surface(vector<Vector3> coordinates, vector<string> elements
     return surfacepoints;
 }
 
-extern "C" void vdw_surface(double* coordinates, char* elements, int n_elements,
-                            double scale_factor, double density, double* out, int* n_out) {
-    vector<string> elements_;
-    vector<Vector3> coordinates_;
-
-    istringstream iss(elements);
-    string s;
-    for (int i = 0; i < n_elements; i++) {
-        getline(iss, s, ' ');
-        elements_.push_back(string(s));
-        coordinates_.push_back(Vector3(coordinates[3*i+0], coordinates[3*i+1], coordinates[3*i+2]));
-    }
-
-    vector<Vector3> points = vdw_surface(coordinates_, elements_, scale_factor, density);
-    for (size_t i = 0; i < points.size(); i++) {
-        out[3*i+0] = points[i][0];
-        out[3*i+1] = points[i][1];
-        out[3*i+2] = points[i][2];
-    }
-    *n_out = points.size();
-}
+// extern "C" void vdw_surface(double* coordinates, char* elements, int n_elements,
+//                             double scale_factor, double density, double* out, int* n_out) {
+//     vector<string> elements_;
+//     vector<Vector3> coordinates_;
+// 
+//     istringstream iss(elements);
+//     string s;
+//     for (int i = 0; i < n_elements; i++) {
+//         getline(iss, s, ' ');
+//         elements_.push_back(string(s));
+//         coordinates_.push_back(Vector3(coordinates[3*i+0], coordinates[3*i+1], coordinates[3*i+2]));
+//     }
+// 
+//     vector<Vector3> points = vdw_surface(coordinates_, elements_, scale_factor, density);
+//     for (size_t i = 0; i < points.size(); i++) {
+//         out[3*i+0] = points[i][0];
+//         out[3*i+1] = points[i][1];
+//         out[3*i+2] = points[i][2];
+//     }
+//     *n_out = points.size();
+// }

@@ -4,19 +4,21 @@ import resp2
 
 
 molecule {
-H
-H 1 R
-
-R = .9
+	o        0.000000    0.127170    0.000000 
+	h        0.757997   -0.508679    0.000000 
+	h       -0.757997   -0.508679    0.000000
 }
 
 set globals {
-  basis sto-3g
+  basis 6-31g*
 }
 
 set resp2 {
     N_VDW_LAYERS 1
+    VDW_SCALE_FACTOR 1.0
+    VDW_POINT_DENSITY 10.0
 }
 
+energy('scf')
 resp2.fit()
 

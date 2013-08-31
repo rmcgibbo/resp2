@@ -237,11 +237,11 @@ vector<Vector3> dotsphere2(int density) {
     //     number of points because of the different algorithms used.
 
     double a = sqrt((density - 2.0) / 30.0);
-    double tess = max(static_cast<int>(ceil(a)), 1);
+    int tess = max(static_cast<int>(ceil(a)), 1);
     vector<Vector3> vertices = icosahedron_vertices();
 
     a = R_H*R_H * 2.0 * (1.0 - cos(TORAD(72.0)));
-
+    
     // Dodecaeder vertices
     for (int i = 0; i < 10; i++) {
         for (int j = i+1; j < 11; j++) {
@@ -259,6 +259,7 @@ vector<Vector3> dotsphere2(int density) {
             }
         }
     }
+
     if (tess > 1) {
         // square of the edge of an dodecaeder
         double adod = 4.0 * (cos(TORAD(108.)) - cos(TORAD(120.))) / (1.0 - cos(TORAD(120.)));
@@ -277,10 +278,12 @@ vector<Vector3> dotsphere2(int density) {
                 double d = (vertices[i] - vertices[j]).norm();
                 if (abs(a-d*d) > DP_TOL)
                     continue;
-                for (int tl = 1; tl < tess; tl++)
+                for (int tl = 1; tl < tess; tl++) {
                     vertices.push_back(divarc(vertices[i], vertices[j], tl, tess));
+                }
             }
         }
+        
         // calculate tessalation of pentakisdodecahedron faces
         for (int i = 0; i < 12; i++) {
             for (int j = 12; j < 31; j++) {
@@ -345,6 +348,8 @@ void get_coulomb_forces(vector<Vector3>& forces, const vector<Vector3>& points) 
       for (size_t j = i+1; j < points.size(); j++) {
           Vector3 r = points[i] - points[j];
           double l = r.norm();
+          if (l < 1e-8)
+              continue;
           Vector3 ff = r / (l*l*l);
           forces[i] += ff;
           forces[j] -= ff;
@@ -397,6 +402,8 @@ vector<Vector3> dotsphere(int density) {
     // density : int
     //     Required number of dots on the unit sphere
     //
+    
+    unsigned int seed;
     int i1 = 1;
     int i2 = 1;
     vector<Vector3> vertices;
@@ -406,15 +413,15 @@ vector<Vector3> dotsphere(int density) {
 
     while (30*i2*i2+2 < density)
         i2 += 1;
-
+    
     // Use one of the two algorithms to generate the initial dots
     // they will give slightly too many.
     if (10*i1*i1-2 < 30*i2*i2-2) {
         vertices = dotsphere1(density);
     } else {
-         vertices = dotsphere2(density);
+        vertices = dotsphere2(density);
     }
-
+        
     if (static_cast<size_t>(density) > vertices.size()) {
         fprintf(stderr, "density:%d, vertices.size(), %zu\n", density, vertices.size());
         fprintf(stderr, "Fatal error");
@@ -424,7 +431,7 @@ vector<Vector3> dotsphere(int density) {
     // Now lets throw out some of them
     set<size_t> keep;
     while (keep.size() < (size_t) density) {
-        size_t v = rand_r(0) % vertices.size();
+        size_t v = rand_r(&seed) % vertices.size();
         keep.insert(v);
     }
 
@@ -436,16 +443,16 @@ vector<Vector3> dotsphere(int density) {
     return new_vertices;
 }
 
-extern "C" void dotsphere(int density, double* points) {
-    vector<Vector3> vertices = dotsphere(density);
-    if ((size_t) density != vertices.size()) {
-        fprintf(stderr, "Wrong size. density=%d, vetices.size=%zu", density, vertices.size());
-        exit(1);
-    }
-
-    for (size_t i = 0; i < vertices.size(); i++) {
-        points[3*i+0] = vertices[i][0];
-        points[3*i+1] = vertices[i][1];
-        points[3*i+2] = vertices[i][2];
-    }
-}
+// extern "C" void dotsphere(int density, double* points) {
+//     vector<Vector3> vertices = dotsphere(density);
+//     if ((size_t) density != vertices.size()) {
+//         fprintf(stderr, "Wrong size. density=%d, vetices.size=%zu", density, vertices.size());
+//         exit(1);
+//     }
+// 
+//     for (size_t i = 0; i < vertices.size(); i++) {
+//         points[3*i+0] = vertices[i][0];
+//         points[3*i+1] = vertices[i][1];
+//         points[3*i+2] = vertices[i][2];
+//     }
+// }
