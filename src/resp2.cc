@@ -30,6 +30,7 @@ namespace psi{ namespace resp2 {
 typedef struct {
     ublas::matrix<double> invr;
     std::vector<double> esp_values;
+    std::vector<int> charge_groups;
     double resp_a;
     double resp_b;
 } Optdata;
@@ -39,7 +40,7 @@ double resp_objective(const std::vector<double> &std_charges, std::vector<double
     Optdata* data = static_cast<Optdata*>(my_func_data);
     double a = data->resp_a;
     double b = data->resp_b;
-    
+
     ublas::vector<double> charges(std_charges.size());
     ublas::vector<double> esp_values(data->esp_values.size());
     std::copy(std_charges.begin(), std_charges.end(), charges.begin());
@@ -47,10 +48,10 @@ double resp_objective(const std::vector<double> &std_charges, std::vector<double
 
     // predicted esp values at the grid points based on the point charge model
     ublas::vector<double> esp_error = esp_values - ublas::prod(data->invr, charges);
-    
+
     // figure of merit for how well the predicted charges match the actual
     double chi2_esp = ublas::norm_1(ublas::element_prod(esp_error, esp_error));
-    
+
     // hyperbolic restraint term  a*sum(sqrt(q**2 + b**2)-b)
     double chi2_rstr = 0;
     for (size_t i = 0; i < charges.size(); i++)
@@ -61,14 +62,35 @@ double resp_objective(const std::vector<double> &std_charges, std::vector<double
 }
 
 
-double resp_constraint(const std::vector<double> &charges, std::vector<double> &grad, void* data) {
+double resp_constraint(const std::vector<double> &charges, std::vector<double> &grad, void* my_func_data) {
     // constraint function that should be equal to zero
-    
+    Optdata* data = static_cast<Optdata*>(my_func_data);
+
     // enforce that the total charge should be zero
     double total_charge = 0;
     for (size_t i = 0; i < charges.size(); i++)
         total_charge += charges[i];
-    return total_charge*total_charge;
+
+    // we want error to be zero
+    double error = total_charge*total_charge;
+
+    // put the charge groups into a map
+    std::map<int, std::vector<int> > groups;
+    for (int i = 0; i < data->charge_groups.size(); i++) {
+        int item = data->charge_groups[i];
+        if (groups.find(item) == groups.end())
+            groups[item] = std::vector<int>();
+        groups[item].push_back(i);
+    }
+
+    for (std::map<int, std::vector<int> >::iterator it = groups.begin(); it != groups.end(); it++) {
+        std::vector<int> items = it->second;
+        for (int i = 0; i < items.size(); i++) {
+            double diff = charges[items[i]] - charges[items[0]];
+            error += diff*diff;
+        }
+    }
+    return error;
 }
 
 
@@ -77,18 +99,17 @@ double resp_constraint(const std::vector<double> &charges, std::vector<double> &
 //**************************************************************************//
 
 
-extern "C" 
+extern "C"
 int read_options(std::string name, Options& options)
 {
     if (name == "RESP2"|| options.read_globals()) {
-        /*- The amount of information printed to the output file -*/
-        options.add_int("PRINT", 1);
         options.add_int("N_VDW_LAYERS", 4);
         options.add_double("VDW_SCALE_FACTOR", 1.4);
         options.add_double("VDW_INCREMENT", 0.2);
         options.add_double("VDW_POINT_DENSITY", 1.0);
         options.add_double("RESP_A", 0.005);
         options.add_double("RESP_B", 0.001);
+        options.add_array("CHARGE_GROUPS");
 
     }
 
@@ -100,10 +121,11 @@ int read_options(std::string name, Options& options)
 //**************************************************************************//
 
 
-extern "C" 
-PsiReturnType resp2(Options& options)
-{
-    int print = options.get_int("PRINT");
+extern "C"
+PsiReturnType resp2(Options& options) {
+    fprintf(outfile, "\n ---------------------------------------------------\n");
+    fprintf(outfile, " RESTRAINED ELECTROSTATIC POTENTIAL CHARGE FITTING\n");
+    fprintf(outfile, " ---------------------------------------------------\n");
 
     boost::shared_ptr<Wavefunction> wfn = Process::environment.wavefunction();
     boost::shared_ptr<BasisSet> basisset = wfn->basisset();
@@ -112,8 +134,19 @@ PsiReturnType resp2(Options& options)
     boost::shared_ptr<ElectrostaticInt> epot(dynamic_cast<ElectrostaticInt*>(integral_->electrostatic()));
     boost::shared_ptr<OEProp> oeprop = boost::shared_ptr<OEProp>(new OEProp());
 
-    int n_atoms = mol->natom();    
+    int n_atoms = mol->natom();
     int nbf = basisset->nbf();
+
+    std::vector<int> charge_groups = options.get_int_vector("CHARGE_GROUPS");
+    if (charge_groups.size() == 0) {
+        fprintf(outfile, "RESP: Using default charge groups. Every atom will be assigned a unique charge\n");
+        for (int i = 0; i < n_atoms; i++)
+            charge_groups.push_back(i);
+    } else if (charge_groups.size() != n_atoms) {
+        fprintf(outfile, "RESP: FATAL ERROR\n");
+        fprintf(outfile, "CHARGE_GROUPS must be a list of integers of size equal to the number of atoms\n");
+        exit(1);
+    }
 
     double point_density = options.get_double("VDW_POINT_DENSITY");
     std::vector<std::string> symbols;
@@ -123,7 +156,7 @@ PsiReturnType resp2(Options& options)
         // the vdwsurface code expects coordinates in angstroms
         coordinates.push_back(Vector3(mol->xyz(i)) * BOHR_TO_ANGSTROMS);
     }
-    
+
     // the the points at which we're going to calculate the ESP surface
     std::vector<Vector3> points;
     std::vector<double> esp_values;
@@ -132,7 +165,7 @@ PsiReturnType resp2(Options& options)
         std::vector<Vector3> this_shell = vdw_surface(coordinates, symbols, scale_factor, point_density);
         points.insert(points.end(), this_shell.begin(), this_shell.end());
     }
-    
+
     // convert the points back to bohrs
     for (size_t i = 0; i < points.size(); i++)
         points[i] = points[i] / BOHR_TO_ANGSTROMS;
@@ -143,7 +176,7 @@ PsiReturnType resp2(Options& options)
     } else {
         Dtot->add(oeprop->Db_ao());
     }
-    
+
 
     // compute the electrostatic potential at each of the points
     // this code probably should be in a different function?
@@ -157,7 +190,7 @@ PsiReturnType resp2(Options& options)
         epot->compute(ints, points[i]);
         double elec = Dtot->vector_dot(ints);
         double nuc = 0.0;
-    
+
         for (int atom1 = 0; atom1 < n_atoms; atom1++)
             nuc += (mol->Z(atom1) / points[i].distance(mol->xyz(atom1)));
 
@@ -166,7 +199,7 @@ PsiReturnType resp2(Options& options)
     }
     fprintf(outfile, " ---------------------------------------------------\n\n");
     fflush(outfile);
-    
+
     printf("Fitting ESP...\n");
 
     ublas::matrix<double> invr (points.size(), n_atoms);
@@ -180,7 +213,8 @@ PsiReturnType resp2(Options& options)
     data.esp_values = esp_values;
     data.resp_a = options.get_double("RESP_A");
     data.resp_b = options.get_double("RESP_B");
-    
+    data.charge_groups = charge_groups;
+
     opt.set_min_objective(resp_objective, &data);
     opt.set_xtol_abs(CHARGE_TOLERANCE);
     opt.add_equality_constraint(resp_constraint, &data, CONSTRAINT_TOLERANCE);
@@ -188,18 +222,17 @@ PsiReturnType resp2(Options& options)
     std::vector<double> charges(n_atoms);
     for (size_t i = 0; i < n_atoms; i++)
         charges[i] = 0.0;
-    
+
     double opt_f = 0;
-    nlopt::result result = opt.optimize(charges, opt_f);    
+    nlopt::result result = opt.optimize(charges, opt_f);
 
     for (int i = 0; i < charges.size(); i++)
         printf("%d: %f    ", i, charges[i]);
     printf("\n");
-    
+
     return Success;
 }
 
 
 
 }} // End namespaces
-

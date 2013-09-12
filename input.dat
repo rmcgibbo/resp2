@@ -17,12 +17,13 @@ set globals {
 }
 
 set resp2 {
-    N_VDW_LAYERS 4
-    VDW_SCALE_FACTOR 1.4
-		VDW_INCREMENT 0.2
-    VDW_POINT_DENSITY 1.0
-		RESP_A 0.005
-		RESP_B 0.1
+    N_VDW_LAYERS       4
+    VDW_SCALE_FACTOR   1.4
+    VDW_INCREMENT      0.2
+    VDW_POINT_DENSITY  1.0
+    RESP_A             0.005
+    RESP_B             0.1
+    CHARGE_GROUPS      [1, 2, 3, 3, 4, 6]
 
 }
 
