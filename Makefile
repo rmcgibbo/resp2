@@ -24,10 +24,16 @@ top_objdir = /Users/rmcgibbo/projects/psi4release/object
 PSITARGET = $(shell basename `pwd`).so
 PSILIBS = -L$(top_objdir)/lib -lPSI_plugin
 
+NLOPTROOT = $(HOME)/opt/nlopt-2.3
+NLOPTLIBS = -L$(NLOPTROOT)/lib -lnlopt -lm
+NLOPTINCLUDE = -I$(NLOPTROOT)/include
+
 CXXSRC = $(notdir $(wildcard src/*.cc))
 CXXSRC = $(wildcard src/*.cc)
 DEPENDINCLUDE = $(notdir $(wildcard include/*.h))
 DEPENDINCLUDE = $(wildcard include/*.h)
+
+CXXINCLUDE += $(NLOPTINCLUDE)
 
 BINOBJ = $(CXXSRC:%.cc=%.o)
 
@@ -45,11 +51,11 @@ ifeq ($(UNAME), Darwin)
 endif
 
 # The object files
-%.o: src/%.cc
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDE) -c $< $(OUTPUT_OPTION)
+src/%.o: src/%.cc
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDE) $(NLOPTINCLUDE) -c $< $(OUTPUT_OPTION)
 
 $(PSITARGET): $(BINOBJ)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(CXXDBG) $(PSILIBS)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(CXXDBG) $(PSILIBS) $(NLOPTLIBS)
 
 # Erase all compiled intermediate files
 clean:
@@ -57,7 +63,7 @@ clean:
 
 # Dependency handling
 %.d: %.cc
-	$(CXXDEPEND) $(CXXDEPENDFLAGS) $(CXXFLAGS) $(CXXINCLUDE) $< > src/$(@F)
+	$(CXXDEPEND) $(CXXDEPENDFLAGS) $(CXXFLAGS) $(CXXINCLUDE) $(NLOPTINCLUDE) $< > src/$(@F)
 
 ifneq ($(DODEPEND),no)
 $(BINOBJ:%.o=%.d): $(DEPENDINCLUDE)

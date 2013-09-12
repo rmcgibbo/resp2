@@ -5,15 +5,77 @@
 #include <liboptions/liboptions.h>
 #include <libmints/mints.h>
 #include <libpsio/psio.hpp>
+#include <nlopt.hpp>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 #include "include/vdwsurface.h"
 #define BOHR_TO_ANGSTROMS 0.52917721092
+#define CONSTRAINT_TOLERANCE 1e-8
+#define CHARGE_TOLERANCE 1e-8
 
 INIT_PLUGIN
 
 using namespace boost;
+using namespace boost::numeric;
 
 namespace psi{ namespace resp2 {
+
+//**************************************************************************//
+// Resp fitting optimization
+//**************************************************************************//
+
+
+typedef struct {
+    ublas::matrix<double> invr;
+    std::vector<double> esp_values;
+    double resp_a;
+    double resp_b;
+} Optdata;
+
+
+double resp_objective(const std::vector<double> &std_charges, std::vector<double> &grad, void *my_func_data) {
+    Optdata* data = static_cast<Optdata*>(my_func_data);
+    double a = data->resp_a;
+    double b = data->resp_b;
+    
+    ublas::vector<double> charges(std_charges.size());
+    ublas::vector<double> esp_values(data->esp_values.size());
+    std::copy(std_charges.begin(), std_charges.end(), charges.begin());
+    std::copy(data->esp_values.begin(), data->esp_values.end(), esp_values.begin());
+
+    // predicted esp values at the grid points based on the point charge model
+    ublas::vector<double> esp_error = esp_values - ublas::prod(data->invr, charges);
+    
+    // figure of merit for how well the predicted charges match the actual
+    double chi2_esp = ublas::norm_1(ublas::element_prod(esp_error, esp_error));
+    
+    // hyperbolic restraint term  a*sum(sqrt(q**2 + b**2)-b)
+    double chi2_rstr = 0;
+    for (size_t i = 0; i < charges.size(); i++)
+        chi2_rstr += a * sqrt(charges[i]*charges[i] + b*b) - b;
+
+    //printf("Objective %f\n", chi2_esp + chi2_rstr);
+    return chi2_esp + chi2_rstr;
+}
+
+
+double resp_constraint(const std::vector<double> &charges, std::vector<double> &grad, void* data) {
+    // constraint function that should be equal to zero
+    
+    // enforce that the total charge should be zero
+    double total_charge = 0;
+    for (size_t i = 0; i < charges.size(); i++)
+        total_charge += charges[i];
+    return total_charge*total_charge;
+}
+
+
+//**************************************************************************//
+// Interface with psi4
+//**************************************************************************//
+
 
 extern "C" 
 int read_options(std::string name, Options& options)
@@ -32,6 +94,11 @@ int read_options(std::string name, Options& options)
 
     return true;
 }
+
+//**************************************************************************//
+// "main" function for the plugin
+//**************************************************************************//
+
 
 extern "C" 
 PsiReturnType resp2(Options& options)
@@ -56,7 +123,7 @@ PsiReturnType resp2(Options& options)
         // the vdwsurface code expects coordinates in angstroms
         coordinates.push_back(Vector3(mol->xyz(i)) * BOHR_TO_ANGSTROMS);
     }
-
+    
     // the the points at which we're going to calculate the ESP surface
     std::vector<Vector3> points;
     std::vector<double> esp_values;
@@ -76,6 +143,7 @@ PsiReturnType resp2(Options& options)
     } else {
         Dtot->add(oeprop->Db_ao());
     }
+    
 
     // compute the electrostatic potential at each of the points
     // this code probably should be in a different function?
@@ -91,7 +159,7 @@ PsiReturnType resp2(Options& options)
         double nuc = 0.0;
     
         for (int atom1 = 0; atom1 < n_atoms; atom1++)
-            nuc += mol->Z(atom1) / points[i].distance(mol->xyz(atom1));
+            nuc += (mol->Z(atom1) / points[i].distance(mol->xyz(atom1)));
 
         esp_values.push_back(nuc+elec);
         fprintf(outfile, "     %8.5f %8.5f %8.5f    %16.12f\n", points[i][0], points[i][1], points[i][2], nuc+elec);
@@ -99,8 +167,39 @@ PsiReturnType resp2(Options& options)
     fprintf(outfile, " ---------------------------------------------------\n\n");
     fflush(outfile);
     
+    printf("Fitting ESP...\n");
+
+    ublas::matrix<double> invr (points.size(), n_atoms);
+    for (size_t i = 0; i < invr.size1(); i++)
+        for (size_t j = 0; j < invr.size2(); j++)
+            invr(i, j) = 1.0 / points[i].distance(mol->xyz(j));
+
+    nlopt::opt opt(nlopt::LN_COBYLA, n_atoms);
+    Optdata data;
+    data.invr = invr;
+    data.esp_values = esp_values;
+    data.resp_a = options.get_double("RESP_A");
+    data.resp_b = options.get_double("RESP_B");
+    
+    opt.set_min_objective(resp_objective, &data);
+    opt.set_xtol_abs(CHARGE_TOLERANCE);
+    opt.add_equality_constraint(resp_constraint, &data, CONSTRAINT_TOLERANCE);
+
+    std::vector<double> charges(n_atoms);
+    for (size_t i = 0; i < n_atoms; i++)
+        charges[i] = 0.0;
+    
+    double opt_f = 0;
+    nlopt::result result = opt.optimize(charges, opt_f);    
+
+    for (int i = 0; i < charges.size(); i++)
+        printf("%d: %f    ", i, charges[i]);
+    printf("\n");
+    
     return Success;
 }
+
+
 
 }} // End namespaces
 

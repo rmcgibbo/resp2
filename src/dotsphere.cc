@@ -421,26 +421,23 @@ vector<Vector3> dotsphere(int density) {
     } else {
         vertices = dotsphere2(density);
     }
-        
-    if (static_cast<size_t>(density) > vertices.size()) {
-        fprintf(stderr, "density:%d, vertices.size(), %zu\n", density, vertices.size());
-        fprintf(stderr, "Fatal error");
-        exit(1);
-    }
 
-    // Now lets throw out some of them
-    set<size_t> keep;
-    while (keep.size() < (size_t) density) {
-        size_t v = rand_r(&seed) % vertices.size();
-        keep.insert(v);
-    }
+    if (static_cast<size_t>(density) < vertices.size()) {
+        // Now lets throw out some of them
+        set<size_t> keep;
+        while (keep.size() < (size_t) density) {
+            size_t v = rand_r(&seed) % vertices.size();
+            keep.insert(v);
+        }
 
-    vector<Vector3> new_vertices;
-    for (set<size_t>::iterator iter = keep.begin(); iter != keep.end(); iter++) {
-        new_vertices.push_back(vertices[*iter]);
+        vector<Vector3> new_vertices;
+        for (set<size_t>::iterator iter = keep.begin(); iter != keep.end(); iter++) {
+            new_vertices.push_back(vertices[*iter]);
+        }
+        vertices = new_vertices;
     }
-    refine_dotsphere(new_vertices);
-    return new_vertices;
+    refine_dotsphere(vertices);
+    return vertices;
 }
 
 // extern "C" void dotsphere(int density, double* points) {
