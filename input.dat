@@ -21,12 +21,13 @@ set resp2 {
     VDW_SCALE_FACTOR   1.4
     VDW_INCREMENT      0.2
     VDW_POINT_DENSITY  1.0
-    RESP_A             0.005
+    RESP_A             0.01
     RESP_B             0.1
-    CHARGE_GROUPS      [1, 2, 3, 3, 4, 6]
+    CHARGE_GROUPS      [1, 2, 3, 6, 4, 5]
 
 }
 
 energy('scf')
 resp2.fit()
+oeprop("MULLIKEN_CHARGES")
 
