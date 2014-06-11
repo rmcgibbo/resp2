@@ -1,4 +1,5 @@
 #include <map>
+#include <stdio.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
