@@ -6,34 +6,43 @@
 
 
 # Location of your PSI4 source
-top_srcdir = /Users/rmcgibbo/projects/psi4release
+top_srcdir = /hsgs/projects/pande/leeping/src/psi4.0b5
 # Location of your PSI4 install, by default as listed
-top_objdir = /Users/rmcgibbo/projects/psi4release/object
+top_objdir = /home/leeping/opt/psi-4.0b5
 
 # Start by figuring out whether we're on Linux or Mac (sorry, Mr. Gates)
 UNAME := $(shell uname)
 
-include $(top_objdir)/src/bin/MakeVars
+include $(top_srcdir)/src/bin/MakeVars.in
 
 # Reset these values, MakeVars changes them to valud only valid in Psi4's objdir
 # Location of your PSI4 source
-top_srcdir = /Users/rmcgibbo/projects/psi4release
+top_srcdir = /hsgs/projects/pande/leeping/src/psi4.0b5
 # Location of your PSI4 install, by default as listed
-top_objdir = /Users/rmcgibbo/projects/psi4release/object
+top_objdir = /home/leeping/opt/psi-4.0b5
 
 PSITARGET = $(shell basename `pwd`).so
-PSILIBS = -L$(top_objdir)/lib -lPSI_plugin
+PSILIBS = -L/hsgs/projects/pande/leeping/src/psi4.0b5/build/lib -lPSI_plugin
 
-NLOPTROOT = $(HOME)/opt/nlopt-2.3
+NLOPTROOT = $(HOME)/opt/nlopt-2.4.2
 NLOPTLIBS = -L$(NLOPTROOT)/lib -lnlopt -lm
 NLOPTINCLUDE = -I$(NLOPTROOT)/include
 
+# -M   -O2 -DLinux -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DBUFF=0 -DSITEDIR=\"/home/leeping/opt/psi-4.0b5/share\" -openmp -fpic -I/home/leeping/opt/intel/composer_xe_2013.1.117/mkl/include -I. -I../../../boost/boost_1_53_0 -I../../../include -I/home/leeping/temp/psi4.0b5/include -I/home/leeping/temp/psi4.0b5/src/lib -I../../../src/lib -I/home/leeping/local/include/python2.7 -I/home/leeping/local/include/python2.7
+
+CXX = g++
+CXXFLAGS = -O2 -fPIC
+CXXINCLUDE = -I/home/leeping/local/include/python2.7 -I/home/leeping/local/include -I/hsgs/projects/pande/leeping/src/psi4.0b5/src/lib -I/hsgs/projects/pande/leeping/src/psi4.0b5/include -I/hsgs/projects/pande/leeping/src/psi4.0b5/build/include -I.
 CXXSRC = $(notdir $(wildcard src/*.cc))
 CXXSRC = $(wildcard src/*.cc)
 DEPENDINCLUDE = $(notdir $(wildcard include/*.h))
 DEPENDINCLUDE = $(wildcard include/*.h)
+CXXDEPENDFLAGS =
+CXXDEPEND =
+CXXDBG =
 
 CXXINCLUDE += $(NLOPTINCLUDE)
+
 
 BINOBJ = $(CXXSRC:%.cc=%.o)
 
