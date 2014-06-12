@@ -1,4 +1,3 @@
-# resp
+# RESP2
 
-Eventually, this is going to be resp. Right now, there's just code for calculation of the fused-sphere van der waals surface of a molecule.
-
+Restrained electrostatic potential (RESP) fitting for PSI4
