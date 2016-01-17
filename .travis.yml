@@ -1,6 +1,9 @@
 language: c++
 sudo: false
 
+compiler:
+  - gcc-4.8
+  
 branches:
   only:
     - master
@@ -16,6 +19,7 @@ before_install:
 
 install:
   - ./configure
+  - cat Makefile
   - make
 
 script:
