@@ -32,6 +32,8 @@ Installation
 2. You'll need to install the nlopt library and its development headers
    * On Debian-based distros, install the `libnlopt-dev` package
    * On RPM-based distros, I think it's `NLopt-devel`.
+   * It's also very easy to compile from source, and in that case you'll get a static
+     library by default which makes everything easier.
 3. You need a C++11-capable compiler.
 4. Checkout this repository and run `./configure; make` in this directory
 5. Run `psi4` in this directory to run the example input file.
