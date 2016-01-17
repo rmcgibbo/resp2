@@ -4,7 +4,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include "include/respfit.h"
+#include "respfit.h"
 
 using namespace boost::numeric;
 
@@ -37,7 +37,7 @@ double resp_objective(const std::vector<double> &std_charges, std::vector<double
     for (size_t i = 0; i < charges.size(); i++)
         chi2_rstr += a * sqrt(charges[i]*charges[i] + b*b) - b;
 
-    printf("Objective %f\n", chi2_esp + chi2_rstr);
+    // printf("Objective %f\n", chi2_esp + chi2_rstr);
     return chi2_esp + chi2_rstr;
 }
 

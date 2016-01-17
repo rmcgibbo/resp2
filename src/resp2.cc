@@ -10,9 +10,10 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include "include/vdwsurface.h"
-#include "include/potential.h"
-#include "include/respfit.h"
+#include "vdwsurface.h"
+#include "potential.h"
+#include "respfit.h"
+#include "gitversion.hpp"
 
 #define BOHR_TO_ANGSTROMS 0.52917721092
 #define CONSTRAINT_TOLERANCE 1e-8
@@ -55,10 +56,10 @@ extern "C"
 PsiReturnType resp2(Options& options) {
     boost::shared_ptr<Wavefunction> wfn = Process::environment.wavefunction();
     if (!wfn) {
-        fprintf(outfile, "\n ---------------------------------------------------\n");
-        fprintf(outfile, " You must first compute the wavefunction (scf) before\n");
-        fprintf(outfile, " running the resp plugin\n");
-        fprintf(outfile, " ---------------------------------------------------\n");
+        outfile->Printf("\n ---------------------------------------------------\n");
+        outfile->Printf(" You must first compute the wavefunction (scf) before\n");
+        outfile->Printf(" running the resp plugin\n");
+        outfile->Printf(" ---------------------------------------------------\n");
             return Failure;
     }
 
@@ -68,12 +69,12 @@ PsiReturnType resp2(Options& options) {
     // Make sure that the charge groups are reasonable
     std::vector<int> charge_groups = options.get_int_vector("CHARGE_GROUPS");
     if (charge_groups.size() == 0) {
-        fprintf(outfile, "RESP: Using default charge groups. Every atom will be assigned a unique charge\n");
+        outfile->Printf("RESP: Using default charge groups. Every atom will be assigned a unique charge\n");
         for (int i = 0; i < n_atoms; i++)
             charge_groups.push_back(i);
     } else if (charge_groups.size() != n_atoms) {
-        fprintf(outfile, "RESP: FATAL ERROR\n");
-        fprintf(outfile, "CHARGE_GROUPS must be a list of integers of size equal to the number of atoms\n");
+        outfile->Printf("RESP: FATAL ERROR\n");
+        outfile->Printf("CHARGE_GROUPS must be a list of integers of size equal to the number of atoms\n");
         exit(1);
     }
 
@@ -126,29 +127,31 @@ PsiReturnType resp2(Options& options) {
     nlopt::result result = opt.optimize(charges, opt_f);
     
     // Print the parameters to disk
-    fprintf(outfile, "\n ---------------------------------------------------\n");
-    fprintf(outfile, " RESTRAINED ELECTROSTATIC POTENTIAL PARAMETERS\n");
-    fprintf(outfile, " ---------------------------------------------------\n");
-    fprintf(outfile, " N_VDW_LAYERS:       %d\n", options.get_int("N_VDW_LAYERS"));
-    fprintf(outfile, " VDW_SCALE_FACTOR:   %.3f\n", options.get_double("VDW_SCALE_FACTOR"));
-    fprintf(outfile, " VDW_INCREMENT:      %.3f\n", options.get_double("VDW_INCREMENT"));
-    fprintf(outfile, " VDW_POINT_DENSITY:  %.3f\n", options.get_double("VDW_POINT_DENSITY"));
-    fprintf(outfile, " RESP_A:             %.4f\n", options.get_double("RESP_A"));
-    fprintf(outfile, " RESP_B:             %.4f\n", options.get_double("RESP_B"));
-    fprintf(outfile, " CHARGE_GROUPS:      [");
+    outfile->Printf("\n ---------------------------------------------------\n");
+    outfile->Printf(" RESTRAINED ELECTROSTATIC POTENTIAL PARAMETERS\n");
+    outfile->Printf(" RESP2 PLUGIN (GIT_VERSION %s)\n", GIT_VERSION);
+    outfile->Printf(" from https://github.com/rmcgibbo/resp2\n");
+    outfile->Printf(" ---------------------------------------------------\n");
+    outfile->Printf(" N_VDW_LAYERS:       %d\n", options.get_int("N_VDW_LAYERS"));
+    outfile->Printf(" VDW_SCALE_FACTOR:   %.3f\n", options.get_double("VDW_SCALE_FACTOR"));
+    outfile->Printf(" VDW_INCREMENT:      %.3f\n", options.get_double("VDW_INCREMENT"));
+    outfile->Printf(" VDW_POINT_DENSITY:  %.3f\n", options.get_double("VDW_POINT_DENSITY"));
+    outfile->Printf(" RESP_A:             %.4f\n", options.get_double("RESP_A"));
+    outfile->Printf(" RESP_B:             %.4f\n", options.get_double("RESP_B"));
+    outfile->Printf(" CHARGE_GROUPS:      [");
     for (size_t i = 0; i < charge_groups.size()-1; i++)
-        fprintf(outfile, "%d, ", charge_groups[i]);
-    fprintf(outfile, "%d]\n", charge_groups[charge_groups.size()-1]);
-    fprintf(outfile, " ---------------------------------------------------\n");
+        outfile->Printf("%d, ", charge_groups[i]);
+    outfile->Printf("%d]\n", charge_groups[charge_groups.size()-1]);
+    outfile->Printf(" ---------------------------------------------------\n");
     
     // Print the results to disk
-    fprintf(outfile, "\n ----------------------------------------------\n");
-    fprintf(outfile, " RESTRAINED ELECTROSTATIC POTENTIAL CHARGES\n");
-    fprintf(outfile, "   Center  Symbol  RESP Charge (a.u.)\n");
-    fprintf(outfile, " ----------------------------------------------\n");
+    outfile->Printf("\n ----------------------------------------------\n");
+    outfile->Printf(" RESTRAINED ELECTROSTATIC POTENTIAL CHARGES\n");
+    outfile->Printf("   Center  Symbol  RESP Charge (a.u.)\n");
+    outfile->Printf(" ----------------------------------------------\n");
     for (int i = 0; i < charges.size(); i++)
-        fprintf(outfile, "   %5d    %2s     %8.5f\n", i+1, symbols[i].c_str(), charges[i]);
-    fprintf(outfile, " ----------------------------------------------\n");
+        outfile->Printf("   %5d    %2s     %8.5f\n", i+1, symbols[i].c_str(), charges[i]);
+    outfile->Printf(" ----------------------------------------------\n");
 
     return Success;
 }

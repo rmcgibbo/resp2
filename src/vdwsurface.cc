@@ -11,9 +11,9 @@
 #include <map>
 #include <set>
 
-#include "include/dotsphere.h"
+#include "dotsphere.h"
 // this is also included in the psi4 code as libmints/vector3.h
-#include "include/vector3.h"
+#include "vector3.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

@@ -1,0 +1,136 @@
+#!/bin/bash
+
+if [[ $1 = "--help"  || $1 = "-h" ]] ; then
+    cat <<EOF 
+Usage ./configure <OPTIONS>
+  OPTIONS
+    --help                    : Display this message
+    --with-nlopt=<DIRECTORY>  : Path to NLOpt directory
+    --cxx=<PATH>              : C++ compiler
+    --cxxflags=<FLAGS>        : Extra flags to pass to compiler
+    --ldflags=<FLAGS>         : Extra flafs to pass to linker
+EOF
+    exit 0
+fi
+
+WHICH_PSI4=`which psi4`
+WHICH_PYTHON=`which python`
+if [[ "$WHICH_PSI4" = "" ]]; then
+    echo "Error: psi4: command not found"
+    exit 1
+fi
+if [[ "$WHICH_PYTHON" = "" ]]; then
+    echo "Error: python: command not found"
+    exit 1
+fi
+
+PSI4ROOTDIR="$(dirname ${WHICH_PSI4})/.."
+CXX="g++"
+CXXFLAGS="-DRESTRICT=__restrict__ -Drestrict=__restrict__ -export-dynamic -fPIC -std=c++11 -O3 -DNDEBUG "
+LDFLAGS="-lnlopt "
+INCLUDES="-Iinclude -Ipsi4-missing-headers/ -I${PSI4ROOTDIR}/include/ -I${PSI4ROOTDIR}/include/python2.7/ "
+
+while [[ $# > 0 ]]
+do
+    VALUE=""
+    POS=`echo $1 | awk 'match($0,"="){print RSTART}'`
+    if [[ $POS -eq 1 ]] ; then
+      echo "Error: '=' cannot be first character in an argument." > /dev/stderr ; exit 1
+    elif [[ $POS -gt 1 ]] ; then
+      ((PM1 = $POS - 1))
+      KEY=${1:0:$PM1}
+      VALUE=${1:$POS}
+      if [[ $VALUE = "" ]] ; then
+        echo "Error: '$1': Expected <var>=<value>, missing <value>." > /dev/stderr ; exit 1
+      fi
+      eval VALUE=$VALUE 2> /dev/null
+    else
+      KEY=$1
+    fi
+
+    echo "$KEY"
+    case $KEY in
+        --cxx)
+            CXX="${VALUE}"
+            ;;
+        --cxxflags)
+            CXXFLAGS="${CXXFLAGS} ${VALUE}"
+            ;;
+        --ldflags)
+            LDFLAGS="${LDFLAGS} ${VALUE}"
+            ;;
+        --with-nlopt)
+            INCLUDES="${INCLUDES} -I${VALUE}/include"
+            LDFLAGS="${LDFLAGS} -L${VALUE}/lib"
+            ;;
+        *)
+            echo "Unrecognized OPTION: $1"
+            exit 1
+            ;;
+    esac
+    shift # past argument or value
+done
+
+
+MAKEFILE_CONTENTS=$(cat <<'EOF'
+CXXDEFS := -DHAVE_DKH -DHAVE_MM_MALLOC_H -DHAVE_MKL_LAPACK -DHAVE_MKL_BLAS -DHAS_CXX11_VARIADIC_TEMPLATES -DHAS_CXX11_STATIC_ASSERT -DHAS_CXX11_SIZEOF_MEMBER -DHAS_CXX11_RVALUE_REFERENCES -DHAS_CXX11_NULLPTR -DHAS_CXX11_LONG_LONG -DHAS_CXX11_LAMBDA -DHAS_CXX11_INITIALIZER_LIST -DHAS_CXX11_DECLTYPE -DHAS_CXX11_CSTDINT_H -DHAS_CXX11_CONSTEXPR -DHAS_CXX11_AUTO_RET_TYPE -DHAS_CXX11_AUTO -DHAS_CXX11_FUNC -DHAS_CXX11 -DSYS_LINUX -DUSE_FCMANGLE_H -D_GLIBCXX_USE_CXX11_ABI=0
+
+# The name of your plugin. Taken from the directory name.
+NAME := $(shell basename `pwd`)
+
+# Used to determine linking flags.
+UNAME = $(shell uname)
+
+PSITARGET = $(NAME).so
+
+# Start the compilation rules
+default:: $(PSITARGET)
+
+# Add the flags needed for shared library creation
+ifeq ($(UNAME), Darwin)
+    CXXFLAGS += -fno-common
+endif
+
+CXXSRC := $(wildcard src/*.cc)
+BINOBJ := $(addprefix obj/, $(notdir $(CXXSRC:%.cc=%.o)))
+
+src/gitversion.hpp: .git/HEAD .git/index
+	echo "const char *GIT_VERSION = \"$(shell git rev-parse --short HEAD)\";" > $@
+obj/dotsphere.o: src/dotsphere.cc
+	$(CXX) $(CXXDEFS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+obj/potential.o: src/potential.cc
+	$(CXX) $(CXXDEFS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+obj/resp2.o: src/resp2.cc src/gitversion.hpp
+	$(CXX) $(CXXDEFS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+obj/vdwsurface.o: src/vdwsurface.cc
+	$(CXX) $(CXXDEFS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+obj/respfit.o: src/respfit.cc
+	$(CXX) $(CXXDEFS) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+$(PSITARGET): $(BINOBJ)
+	$(CXX) -shared -o $@ $^ $(CXXDEFS) $(LDFLAGS)
+
+clean: psiclean
+	rm -f $(BINOBJ) $(PSITARGET) *.d *.pyc *.test output.dat psi.timer.dat
+
+psiclean:
+	rm -f `cat psi.*.clean | xargs`
+	rm -f psi.*.clean  psi.*.clean.out timer.dat psi.timer.dat
+
+print-%:
+	@echo '$*=$($*)'
+EOF
+)
+
+
+# rm -f Makefile
+cat <<EOF > Makefile
+CXX := ${CXX}
+CXXFLAGS := ${CXXFLAGS}
+LDFLAGS := ${LDFLAGS}
+INCLUDES := ${INCLUDES}
+
+${MAKEFILE_CONTENTS}
+EOF
+echo "Writing Makefile"
+mkdir -p obj

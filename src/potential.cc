@@ -28,10 +28,10 @@ std::vector<double> calculate_esp_at_points(std::vector<Vector3> points) {
 
     // compute the electrostatic potential at each of the points
     // this code probably should be in a different function?
-    fprintf(outfile, "\n Electrostatic potentials at van der Waals shells:\n");
-    fprintf(outfile, " ---------------------------------------------------\n");
-    fprintf(outfile, "   x   y   z  Electrostatic Potential (a.u.)\n");
-    fprintf(outfile, " ---------------------------------------------------\n");
+    outfile->Printf("\n Electrostatic potentials at van der Waals shells:\n");
+    outfile->Printf(" ---------------------------------------------------\n");
+    outfile->Printf("   x   y   z  Electrostatic Potential (a.u.)\n");
+    outfile->Printf(" ---------------------------------------------------\n");
     for (size_t i = 0; i < points.size(); i++) {
         std::stringstream s;
         SharedMatrix ints(new Matrix(s.str(), nbf, nbf));
@@ -43,10 +43,10 @@ std::vector<double> calculate_esp_at_points(std::vector<Vector3> points) {
             nuc += (mol->Z(atom1) / points[i].distance(mol->xyz(atom1)));
 
         esp_values.push_back(nuc+elec);
-        fprintf(outfile, "     %8.5f %8.5f %8.5f    %16.12f\n", points[i][0], points[i][1], points[i][2], nuc+elec);
+        outfile->Printf("     %8.5f %8.5f %8.5f    %16.12f\n", points[i][0], points[i][1], points[i][2], nuc+elec);
     }
-    fprintf(outfile, " ---------------------------------------------------\n");
-    fflush(outfile);
+    outfile->Printf(" ---------------------------------------------------\n");
+    outfile->Flush();
 
     return esp_values;
 }

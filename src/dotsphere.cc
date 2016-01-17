@@ -36,8 +36,8 @@
 #include <algorithm>
 #include <set>
 
-#include "include/vector3.h"
-#include "include/dotsphere.h"
+#include "vector3.h"
+#include "dotsphere.h"
 
 #define TORAD(A)     ((A)*0.017453293)
 #define DP_TOL     0.001
