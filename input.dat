@@ -31,5 +31,3 @@ oeprop("MULLIKEN_CHARGES")
 
 # and then called after scf is converged
 psi4.plugin('resp2.so')
-
-
