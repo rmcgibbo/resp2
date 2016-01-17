@@ -20,24 +20,18 @@ env:
   - COMPILER=g++-4.8
 
 before_install:
-  - wget --quiet http://ab-initio.mit.edu/nlopt/nlopt-2.4.2.tar.gz
-  - tar -xzf nlopt-2.4.2.tar.gz
-  - (cd nlopt-2.4.2 &&
-     CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=$HOME/usr &&
-     make &&
-     make install)
-
   - MINICONDA=Miniconda-latest-Linux-x86_64.sh
   - wget http://repo.continuum.io/miniconda/$MINICONDA
   - bash $MINICONDA -b -p $HOME/miniconda
   - export PATH=$HOME/miniconda/bin:$PATH
   - echo $PATH
   - which python && python --version
+  - conda install --yes -c r nlopt
   - conda install --yes boost
   - echo 'Y' | conda install --yes -c psi4 psi4
 
 install:
-  - ./configure --cxx=$COMPILER --with-nlopt=$HOME/usr
+  - ./configure --cxx=$COMPILER --with-nlopt=$HOME/miniconda/lib/
   - make
 
 script:
