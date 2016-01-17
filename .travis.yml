@@ -1,5 +1,12 @@
+branches:
+  only:
+    - master
+notifications:
+  email: false
+
 language: c++
 sudo: false
+
 addons:
   apt:
     sources:
@@ -9,13 +16,9 @@ addons:
       - g++-4.8
       - libnlopt-dev
 
-compiler:
-  - gcc-4.8
-  - gcc-5
-
-branches:
-  only:
-    - master
+env:
+  - COMPILER=g++-5
+  - COMPILER=g++-5
 
 before_install:
   - MINICONDA=Miniconda-latest-Linux-x86_64.sh
@@ -27,7 +30,7 @@ before_install:
   - echo 'Y' | conda install --yes -c psi4 psi4
 
 install:
-  - ./configure --cxx=$CXX
+  - ./configure --cxx=$COMPILER
   - cat Makefile
   - make
 
