@@ -29,8 +29,12 @@ Installation
 1. Install psi4 using conda
    * This requires having the Anaconda or Miniconda Python distribution installed.
    * See http://www.psicode.org/psi4manual/master/conda.html#quick-installation
-2. Checkout this repository and run `./configure; make` in this directory
-3. Run `psi4` in this directory to run the example input file.
+2. You'll need to install the nlopt library and its development headers
+   * On Debian-based distros, install the `libnlopt-dev` package
+   * On RPM-based distros, I think it's `NLopt-devel`.
+3. You need a C++11-capable compiler.
+4. Checkout this repository and run `./configure; make` in this directory
+5. Run `psi4` in this directory to run the example input file.
 
 
 References
