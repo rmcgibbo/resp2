@@ -2,12 +2,12 @@
 
 _Restrained electrostatic potential (RESP) fitting for PSI4_
 
-**This code is not maintained, and may not compile or work on your machine, or with the latest version of PSI4. If you'd like to get it working, please feel free to fork it and develop it, or I can add you as a maintainer on this repository or transfer ownsership if you'd like**
-
 Overview
 --------
 
 This is a partially-complete plugin for [PSI4](https://github.com/psi4/psi4public) that implements restrained electrostatic potential fitting (RESP) [1] to compute atomic partial charges, potentially for use in MD.
+
+This plugin still probably needs to be verified against a known-good implementation of this method, such as the code in AmberTools.
 
 RESP is really a pretty simple method, and PSI4 has a _very_ nice plugin architecture for adding in new functionality that
 can make use of the core PSI4 objects (the Wavefunction, etc), without needing to recompile all of PSI4 as you change your plugin.
@@ -23,12 +23,13 @@ The basic structure of the calculation is:
 For the minimzer, this code currently uses [nlopt](http://ab-initio.mit.edu/wiki/index.php/NLopt) (cpp interface), so you'll
 need the headers / libraries for that. I didn't really using other optimizers. [LBFGS's C interface](https://github.com/pandegroup/openmm/blob/master/libraries/lbfgs/src/lbfgs.cpp) might be more lightweight / self-contained if you want to redesign that part.
 
-Work Required
--------------
-If you want to get this working for you, the action items are probably to
-
-1. Redesign the Makefile and add some kind of proper build system. (I think since [psi4public#174](https://github.com/psi4/psi4public/pull/174) was merged this should be straightforward, since you can ask the psi4 binary for all the proper include paths and linker options).
-2. Verify the output against a known-good implementation of this method, such as the code in AmberTools.
+Installation
+------------
+1. Install psi4 using conda
+   * This requires having the Anaconda or Miniconda Python distribution installed.
+   * See http://www.psicode.org/psi4manual/master/conda.html#quick-installation
+2. Checkout this repository and run `./configure; make` in this directory
+3. Run `psi4` in this directory to run the example input file.
 
 
 References

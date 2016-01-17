@@ -1,0 +1,23 @@
+language: c++
+sudo: false
+
+branches:
+  only:
+    - master
+
+before_install:
+  - MINICONDA=Miniconda-latest-Linux-x86_64.sh
+  - wget http://repo.continuum.io/miniconda/$MINICONDA
+  - bash $MINICONDA -b -p $HOME/miniconda
+  - export PATH=$HOME/miniconda/bin:$PATH
+  - echo $PATH
+  - which python && python --version
+  - conda install -c psi4 psi4
+
+install:
+  - ./configure
+  - make
+
+script:
+  - psi4
+  
