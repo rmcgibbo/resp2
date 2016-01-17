@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(0, '..')
-import resp2
-
+import psi4
 
 molecule {
   C            0.012220093121    -0.717626540721     0.000000000000
@@ -16,6 +13,8 @@ set globals {
   basis 6-31g*
 }
 
+# plugin must be loaded before options are set
+psi4.plugin_load('./resp2.so')
 set resp2 {
     N_VDW_LAYERS       4
     VDW_SCALE_FACTOR   1.4
@@ -28,6 +27,9 @@ set resp2 {
 }
 
 energy('scf')
-resp2.fit()
 oeprop("MULLIKEN_CHARGES")
+
+# and then called after scf is converged
+psi4.plugin('resp2.so')
+
 
