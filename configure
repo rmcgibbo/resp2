@@ -27,7 +27,7 @@ fi
 PSI4ROOTDIR="$(dirname ${WHICH_PSI4})/.."
 CXX="g++"
 CXXFLAGS="-DRESTRICT=__restrict__ -Drestrict=__restrict__ -export-dynamic -fPIC -std=c++11 -O3 -DNDEBUG "
-LDFLAGS="-lnlopt "
+LDFLAGS="-lnlopt"
 INCLUDES="-Iinclude -Ipsi4-missing-headers/ -I${PSI4ROOTDIR}/include/ -I${PSI4ROOTDIR}/include/python2.7/ "
 
 while [[ $# > 0 ]]
@@ -61,7 +61,7 @@ do
             ;;
         --with-nlopt)
             INCLUDES="${INCLUDES} -I${VALUE}/include"
-            LDFLAGS="${LDFLAGS} -L${VALUE}/lib"
+            LDFLAGS="-L${VALUE}/lib ${LDFLAGS}"
             ;;
         *)
             echo "Unrecognized OPTION: $1"
