@@ -38,8 +38,9 @@ before_install:
 
 install:
   - ./configure --cxx=$COMPILER --with-nlopt=$HOME/usr
-  - cat Makefile
   - make
 
 script:
-  - psi4
+  - ldd resp2.so
+  - psi4 input.dat
+  - cat output.dat
