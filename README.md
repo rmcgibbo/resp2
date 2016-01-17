@@ -1,4 +1,5 @@
 # RESP2
+[![Build Status](https://travis-ci.org/rmcgibbo/resp2.svg?branch=master)](https://travis-ci.org/rmcgibbo/resp2)
 
 _Restrained electrostatic potential (RESP) fitting for PSI4_
 
