@@ -17,7 +17,7 @@ addons:
 
 env:
   - COMPILER=g++-5
-  - COMPILER=g++-5
+  - COMPILER=g++-4.8
 
 before_install:
   - wget --quiet http://ab-initio.mit.edu/nlopt/nlopt-2.4.2.tar.gz
