@@ -12,7 +12,7 @@ before_install:
   - export PATH=$HOME/miniconda/bin:$PATH
   - echo $PATH
   - which python && python --version
-  - conda install -c psi4 psi4
+  - conda install --yes -c psi4 psi4
 
 install:
   - ./configure
