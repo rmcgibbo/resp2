@@ -21,8 +21,8 @@ The basic structure of the calculation is:
 3. Calculate the MM ESP at these points as a function of the atomic partial charges.
 4. Minimize some norm of the difference between these two sets of charges w.r.t the atomic partial charges.
 
-For the minimzer, this code currently uses [nlopt](http://ab-initio.mit.edu/wiki/index.php/NLopt) (cpp interface), so you'll
-need the headers / libraries for that. I didn't really using other optimizers. [LBFGS's C interface](https://github.com/pandegroup/openmm/blob/master/libraries/lbfgs/src/lbfgs.cpp) might be more lightweight / self-contained if you want to redesign that part.
+For the minimzer, this code  uses [nlopt](http://ab-initio.mit.edu/wiki/index.php/NLopt) (cpp interface), so you'll
+need the headers / libraries for that.
 
 Installation
 ------------
@@ -36,6 +36,9 @@ Installation
 4. Checkout this repository and run `./configure; make` in this directory
 5. Run `psi4` in this directory to run the example input file.
 
+Example
+-------
+See the [build log](https://travis-ci.org/rmcgibbo/resp2) on Travis-CI.
 
 References
 ----------
