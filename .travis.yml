@@ -1,9 +1,18 @@
 language: c++
 sudo: false
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-5
+      - g++-4.8
+      - libnlopt-dev
 
-compiler:
-  - gcc-4.8
-  
+env:
+  - CXX=g++-5
+  - CXX=g++-4.8
+
 branches:
   only:
     - master
@@ -18,10 +27,9 @@ before_install:
   - echo 'Y' | conda install --yes -c psi4 psi4
 
 install:
-  - ./configure
+  - ./configure --cxx=$CXX
   - cat Makefile
   - make
 
 script:
   - psi4
-  
