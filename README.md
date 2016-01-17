@@ -34,7 +34,9 @@ Installation
    * On RPM-based distros, I think it's `NLopt-devel`.
    * It's also very easy to compile from source, and in that case you'll get a static
      library by default which makes everything easier.
-3. You need a C++11-capable compiler.
+3. You need a C++11-capable compiler and boost.
+   * If you're using a cluster with an old linux, just run
+     `conda install gcc boost`
 4. Checkout this repository and run `./configure; make` in this directory
 5. Run `psi4` in this directory to run the example input file.
 
