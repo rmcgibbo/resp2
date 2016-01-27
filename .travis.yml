@@ -14,17 +14,18 @@ matrix:
     - env: COMPILER=g++-5
       addons: {apt: {packages: [g++-5], sources: [ubuntu-toolchain-r-test]}}
     - env: COMPILER=clang++-3.6
-      addons: {apt: {packages: [clang-3.6], sources: [llvm-toolchain-precise-3.6]}}
+      addons: {apt: {packages: [clang-3.6], sources: [ubuntu-toolchain-r-test, llvm-toolchain-precise-3.6]}}
+    - env: [CONDA_GCC=1, COMPILER=g++]
 
 before_install:
   - MINICONDA=Miniconda-latest-Linux-x86_64.sh
   - wget http://repo.continuum.io/miniconda/$MINICONDA
   - bash $MINICONDA -b -p $HOME/miniconda
   - export PATH=$HOME/miniconda/bin:$PATH
-  - echo $PATH
   - which python && python --version
   - conda install --yes -c r nlopt
   - conda install --yes boost
+  - [ "$CONDA_GCC" = "1" ] && conda install gcc
   - echo 'Y' | conda install --yes -c psi4 psi4
 
 install:
