@@ -14,7 +14,7 @@ matrix:
     - env: COMPILER=g++-5
       addons: {apt: {packages: [g++-5], sources: [ubuntu-toolchain-r-test]}}
     - env: COMPILER=clang++-3.6
-      addons: {apt: {packages: [clang-3.7], sources: [llvm-toolchain-precise-3.6]}}
+      addons: {apt: {packages: [clang-3.6], sources: [llvm-toolchain-precise-3.6]}}
 
 before_install:
   - MINICONDA=Miniconda-latest-Linux-x86_64.sh
