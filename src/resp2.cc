@@ -1,3 +1,4 @@
+#include "Python.h"
 #include <stdio.h>
 #include <libplugin/plugin.h>
 #include <psi4-dec.h>

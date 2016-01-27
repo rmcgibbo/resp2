@@ -3,3 +3,4 @@
 *.so
 *.d
 output.dat
+Makefile

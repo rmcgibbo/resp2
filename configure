@@ -13,8 +13,9 @@ EOF
     exit 0
 fi
 
-WHICH_PSI4=`which psi4`
-WHICH_PYTHON=`which python`
+WHICH_PSI4=$(which psi4)
+WHICH_PYTHON=$(which python)
+WHICH_PSI4CONFIG=$(which psi4-config)
 if [[ "$WHICH_PSI4" = "" ]]; then
     echo "Error: psi4: command not found"
     exit 1
@@ -23,12 +24,18 @@ if [[ "$WHICH_PYTHON" = "" ]]; then
     echo "Error: python: command not found"
     exit 1
 fi
+if [[ "$WHICH_PSI4CONFIG" = "" ]]; then
+    echo "Error: psi4-config: command not found"
+    echo "You might have too old of a version of psi4"
+    echo "Upgrade to the latest version with conda"
+    exit 1
+fi
 
 PSI4ROOTDIR="$(dirname ${WHICH_PSI4})/.."
 CXX="g++"
-CXXFLAGS="-DRESTRICT=__restrict__ -Drestrict=__restrict__ -export-dynamic -fPIC -std=c++11 -O3 -DNDEBUG "
+CXXFLAGS="$(psi4-config --defines 2>&1 >/dev/null) -DRESTRICT=__restrict__ -fPIC -std=c++11 -export-dynamic -Wno-deprecated-declarations"
 LDFLAGS="-lnlopt"
-INCLUDES="-Iinclude -Ipsi4-missing-headers/ -I${PSI4ROOTDIR}/include/ -I${PSI4ROOTDIR}/include/python2.7/ "
+INCLUDES="-Iinclude -I${PSI4ROOTDIR}/include/ -I${PSI4ROOTDIR}/include/psi4 -I${PSI4ROOTDIR}/include/python2.7/ "
 
 while [[ $# > 0 ]]
 do

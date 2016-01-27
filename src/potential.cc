@@ -1,7 +1,4 @@
-//#include <stdio.h>
-//#include <libplugin/plugin.h>
-//#include <psi4-dec.h>
-//#include <libparallel/parallel.h>
+#include "Python.h"
 #include <liboptions/liboptions.h>
 #include <libmints/mints.h>
 #include <libpsio/psio.hpp>
