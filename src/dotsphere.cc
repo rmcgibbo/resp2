@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <set>
 
-#include "vector3.h"
+#include "libmints/vector3.h"
 #include "dotsphere.h"
 
 #define TORAD(A)     ((A)*0.017453293)
