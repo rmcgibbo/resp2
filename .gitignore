@@ -4,3 +4,4 @@
 *.d
 output.dat
 Makefile
+timer.dat

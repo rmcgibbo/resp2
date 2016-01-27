@@ -33,8 +33,8 @@ fi
 
 PSI4ROOTDIR="$(dirname ${WHICH_PSI4})/.."
 CXX="g++"
-CXXFLAGS="$(psi4-config --defines 2>&1 >/dev/null) -DRESTRICT=__restrict__ -fPIC -std=c++11 -export-dynamic -Wno-deprecated-declarations"
-LDFLAGS="-lnlopt"
+CXXFLAGS="$(psi4-config --defines 2>&1 >/dev/null) -DRESTRICT=__restrict__ -fPIC -std=c++11 -Wno-deprecated-declarations"
+LDFLAGS="-lnlopt -Wl,-export-dynamic"
 INCLUDES="-Iinclude -I${PSI4ROOTDIR}/include/ -I${PSI4ROOTDIR}/include/psi4 -I${PSI4ROOTDIR}/include/python2.7/ "
 
 while [[ $# > 0 ]]
@@ -55,7 +55,6 @@ do
       KEY=$1
     fi
 
-    echo "$KEY"
     case $KEY in
         --cxx)
             CXX="${VALUE}"
