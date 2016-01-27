@@ -27,8 +27,10 @@ need the headers / libraries for that.
 Installation
 ------------
 1. Install psi4 using conda
+   * `conda install -c psi4 psi4`
    * This requires having the Anaconda or Miniconda Python distribution installed.
    * See http://www.psicode.org/psi4manual/master/conda.html#quick-installation
+   * You'll need psi4 >= 0.3.534.
 2. You'll need to install the nlopt library and its development headers
    * On Debian-based distros, install the `libnlopt-dev` package
    * On RPM-based distros, I think it's `NLopt-devel`.
