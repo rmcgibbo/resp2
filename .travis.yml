@@ -25,7 +25,7 @@ before_install:
   - which python && python --version
   - conda install --yes -c r nlopt
   - conda install --yes boost
-  - '[ "$CONDA_GCC" = "1" ] && conda install --yes gcc'
+  - '[ "$CONDA_GCC" = "1" ] && conda install --yes gcc || true'
   - echo 'Y' | conda install --yes -c psi4 psi4
 
 install:
